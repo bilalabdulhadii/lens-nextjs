@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import {
     User,
+    type UserCredential,
     onAuthStateChanged,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
@@ -19,8 +20,8 @@ import { auth } from "@/lib/firebase";
 type AuthCtx = {
     user: User | null;
     loading: boolean;
-    login: (email: string, password: string) => Promise<void>;
-    signup: (email: string, password: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<UserCredential>;
+    signup: (email: string, password: string) => Promise<UserCredential>;
     logout: () => Promise<void>;
 };
 
@@ -43,10 +44,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             user,
             loading,
             login: async (email, password) => {
-                await signInWithEmailAndPassword(auth, email, password);
+                return signInWithEmailAndPassword(auth, email, password);
             },
             signup: async (email, password) => {
-                await createUserWithEmailAndPassword(auth, email, password);
+                return createUserWithEmailAndPassword(auth, email, password);
             },
             logout: async () => {
                 await signOut(auth);

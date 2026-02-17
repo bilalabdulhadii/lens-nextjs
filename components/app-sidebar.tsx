@@ -1,185 +1,196 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  LifeBuoy,
-  Map,
-  PieChart,
-  Send,
-  Settings2,
-  SquareTerminal,
-} from "lucide-react"
+    BookOpen,
+    Bot,
+    Frame,
+    LifeBuoy,
+    Map,
+    PieChart,
+    Send,
+    Settings2,
+    SquareTerminal,
+} from "lucide-react";
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from "@/components/nav-main";
+import { NavProjects } from "@/components/nav-projects";
+import { NavSecondary } from "@/components/nav-secondary";
+import { NavUser } from "@/components/nav-user";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar"
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import Link from "next/link";
+import Image from "next/image";
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
+    user: {
+        name: "shadcn",
+        email: "m@example.com",
+        avatar: "/avatars/shadcn.jpg",
     },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
+    navMain: [
         {
-          title: "Genesis",
-          url: "#",
+            title: "Playground",
+            url: "#",
+            icon: SquareTerminal,
+            isActive: true,
+            items: [
+                {
+                    title: "History",
+                    url: "#",
+                },
+                {
+                    title: "Starred",
+                    url: "#",
+                },
+                {
+                    title: "Settings",
+                    url: "#",
+                },
+            ],
         },
         {
-          title: "Explorer",
-          url: "#",
+            title: "Models",
+            url: "#",
+            icon: Bot,
+            items: [
+                {
+                    title: "Genesis",
+                    url: "#",
+                },
+                {
+                    title: "Explorer",
+                    url: "#",
+                },
+                {
+                    title: "Quantum",
+                    url: "#",
+                },
+            ],
         },
         {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
+            title: "Documentation",
+            url: "#",
+            icon: BookOpen,
+            items: [
+                {
+                    title: "Introduction",
+                    url: "#",
+                },
+                {
+                    title: "Get Started",
+                    url: "#",
+                },
+                {
+                    title: "Tutorials",
+                    url: "#",
+                },
+                {
+                    title: "Changelog",
+                    url: "#",
+                },
+            ],
         },
         {
-          title: "Team",
-          url: "#",
+            title: "Settings",
+            url: "#",
+            icon: Settings2,
+            items: [
+                {
+                    title: "General",
+                    url: "#",
+                },
+                {
+                    title: "Team",
+                    url: "#",
+                },
+                {
+                    title: "Billing",
+                    url: "#",
+                },
+                {
+                    title: "Limits",
+                    url: "#",
+                },
+            ],
+        },
+    ],
+    navSecondary: [
+        {
+            title: "Support",
+            url: "#",
+            icon: LifeBuoy,
         },
         {
-          title: "Billing",
-          url: "#",
+            title: "Feedback",
+            url: "#",
+            icon: Send,
+        },
+    ],
+    projects: [
+        {
+            name: "Design Engineering",
+            url: "#",
+            icon: Frame,
         },
         {
-          title: "Limits",
-          url: "#",
+            name: "Sales & Marketing",
+            url: "#",
+            icon: PieChart,
         },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Support",
-      url: "#",
-      icon: LifeBuoy,
-    },
-    {
-      title: "Feedback",
-      url: "#",
-      icon: Send,
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
-}
+        {
+            name: "Travel",
+            url: "#",
+            icon: Map,
+        },
+    ],
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  return (
-    <Sidebar variant="inset" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <Command className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Acme Inc</span>
-                  <span className="truncate text-xs">Enterprise</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
-      </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
-    </Sidebar>
-  )
+    return (
+        <Sidebar variant="inset" {...props}>
+            <SidebarHeader>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton size="lg" asChild>
+                            <Link href="/">
+                                <div className="text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                                    <Image
+                                        src="/lens_white.svg"
+                                        alt="Lens logo"
+                                        width={24}
+                                        height={24}
+                                        className="size-9"
+                                    />
+                                </div>
+                                <div className="grid flex-1 text-left text-sm leading-tight">
+                                    <span className="truncate font-medium">
+                                        Lens
+                                    </span>
+                                    <span className="truncate text-xs">
+                                        Image Studio
+                                    </span>
+                                </div>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
+            <SidebarContent>
+                <NavMain items={data.navMain} />
+                <NavProjects projects={data.projects} />
+                <NavSecondary items={data.navSecondary} className="mt-auto" />
+            </SidebarContent>
+            <SidebarFooter>
+                <NavUser user={data.user} />
+            </SidebarFooter>
+        </Sidebar>
+    );
 }
