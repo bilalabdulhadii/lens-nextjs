@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeToggleButton } from "./theme-toggle-button";
 
 export function SiteHeader() {
     return (
@@ -13,19 +13,7 @@ export function SiteHeader() {
                 />
                 <h1 className="text-base font-medium">Dashboard</h1>
                 <div className="ml-auto flex items-center gap-2">
-                    <Button
-                        variant="ghost"
-                        asChild
-                        size="sm"
-                        className="hidden sm:flex">
-                        <a
-                            href="#"
-                            rel="noopener noreferrer"
-                            target="_blank"
-                            className="dark:text-foreground">
-                            GitHub
-                        </a>
-                    </Button>
+                    <ThemeToggleButton compact />
                 </div>
             </div>
         </header>

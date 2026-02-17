@@ -7,7 +7,15 @@ import { AuthProvider } from "@/lib/auth-context";
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            storageKey="lens-theme"
+            value={{
+                light: "light",
+                dark: "dark",
+            }}>
             <TooltipProvider>
                 <AuthProvider>{children}</AuthProvider>
             </TooltipProvider>

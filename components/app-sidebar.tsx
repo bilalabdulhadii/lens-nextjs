@@ -2,19 +2,13 @@
 
 import * as React from "react";
 import {
-    BookOpen,
-    Bot,
-    Frame,
-    LifeBuoy,
-    Map,
-    PieChart,
-    Send,
-    Settings2,
-    SquareTerminal,
+    Info,
+    LayoutDashboard,
+    GalleryVerticalEnd,
+    Images,
+    Compass,
 } from "lucide-react";
-
 import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
 import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -28,134 +22,54 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import Image from "next/image";
-
-const data = {
-    user: {
-        name: "shadcn",
-        email: "m@example.com",
-        avatar: "/avatars/shadcn.jpg",
-    },
-    navMain: [
-        {
-            title: "Playground",
-            url: "#",
-            icon: SquareTerminal,
-            isActive: true,
-            items: [
-                {
-                    title: "History",
-                    url: "#",
-                },
-                {
-                    title: "Starred",
-                    url: "#",
-                },
-                {
-                    title: "Settings",
-                    url: "#",
-                },
-            ],
-        },
-        {
-            title: "Models",
-            url: "#",
-            icon: Bot,
-            items: [
-                {
-                    title: "Genesis",
-                    url: "#",
-                },
-                {
-                    title: "Explorer",
-                    url: "#",
-                },
-                {
-                    title: "Quantum",
-                    url: "#",
-                },
-            ],
-        },
-        {
-            title: "Documentation",
-            url: "#",
-            icon: BookOpen,
-            items: [
-                {
-                    title: "Introduction",
-                    url: "#",
-                },
-                {
-                    title: "Get Started",
-                    url: "#",
-                },
-                {
-                    title: "Tutorials",
-                    url: "#",
-                },
-                {
-                    title: "Changelog",
-                    url: "#",
-                },
-            ],
-        },
-        {
-            title: "Settings",
-            url: "#",
-            icon: Settings2,
-            items: [
-                {
-                    title: "General",
-                    url: "#",
-                },
-                {
-                    title: "Team",
-                    url: "#",
-                },
-                {
-                    title: "Billing",
-                    url: "#",
-                },
-                {
-                    title: "Limits",
-                    url: "#",
-                },
-            ],
-        },
-    ],
-    navSecondary: [
-        {
-            title: "Support",
-            url: "#",
-            icon: LifeBuoy,
-        },
-        {
-            title: "Feedback",
-            url: "#",
-            icon: Send,
-        },
-    ],
-    projects: [
-        {
-            name: "Design Engineering",
-            url: "#",
-            icon: Frame,
-        },
-        {
-            name: "Sales & Marketing",
-            url: "#",
-            icon: PieChart,
-        },
-        {
-            name: "Travel",
-            url: "#",
-            icon: Map,
-        },
-    ],
-};
+import { useUserProfile } from "@/lib/use-user-profile";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    const { profile, loading } = useUserProfile();
+
+    const userData = {
+        name: loading
+            ? "Loading..."
+            : profile?.fullName || profile?.username || "User",
+        email: profile?.email || "",
+        avatar: "/avatars/default.jpg",
+    };
+
+    const data = {
+        user: userData,
+        navMain: [
+            {
+                title: "Dashboard",
+                url: "/dashboard",
+                icon: LayoutDashboard,
+            },
+            {
+                title: "Studio",
+                url: "/dashboard/studio",
+                icon: Images,
+            },
+            {
+                title: "Albums",
+                url: "/dashboard/albums",
+                icon: GalleryVerticalEnd,
+            },
+        ],
+        navSecondary: [
+            {
+                title: "Explore",
+                url: "/explore",
+                icon: Compass,
+            },
+            {
+                title: "About Lens",
+                url: "/about",
+                icon: Info,
+            },
+        ],
+    };
+
     return (
-        <Sidebar variant="inset" {...props}>
+        <Sidebar collapsible="icon" variant="inset" {...props}>
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
@@ -163,11 +77,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             <Link href="/">
                                 <div className="text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                                     <Image
-                                        src="/lens_white.svg"
+                                        src="/lens.svg"
                                         alt="Lens logo"
                                         width={24}
                                         height={24}
-                                        className="size-9"
+                                        className="size-9 dark:hidden"
+                                    />
+                                    <Image
+                                        src="/lens_white.svg"
+                                        alt="Lens logo (dark)"
+                                        width={24}
+                                        height={24}
+                                        className="size-9 hidden dark:block"
                                     />
                                 </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -185,7 +106,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarHeader>
             <SidebarContent>
                 <NavMain items={data.navMain} />
-                <NavProjects projects={data.projects} />
                 <NavSecondary items={data.navSecondary} className="mt-auto" />
             </SidebarContent>
             <SidebarFooter>

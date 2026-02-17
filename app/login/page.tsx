@@ -14,11 +14,18 @@ export default function LoginPage() {
                         className="flex items-center gap-3 self-center font-medium mb-4"
                         aria-label="Go to home">
                         <Image
-                            src="/lens_white.svg"
+                            src="/lens.svg"
                             alt="Lens logo"
-                            width={48}
-                            height={48}
-                            className="size-9"
+                            width={24}
+                            height={24}
+                            className="size-9 dark:hidden"
+                        />
+                        <Image
+                            src="/lens_white.svg"
+                            alt="Lens logo (dark)"
+                            width={24}
+                            height={24}
+                            className="size-9 hidden dark:block"
                         />
                         <span className="text-3xl">Lens</span>
                     </Link>
