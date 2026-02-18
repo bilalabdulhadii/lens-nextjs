@@ -33,6 +33,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             : profile?.fullName || profile?.username || "User",
         email: profile?.email || "",
         avatar: "/avatars/default.jpg",
+        username: profile?.username || "",
     };
 
     const data = {

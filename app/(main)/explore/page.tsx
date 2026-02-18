@@ -111,7 +111,8 @@ export default function ExplorePage() {
                                 title: image.fileName ?? `Image ${index + 1}`,
                                 size: image.size,
                                 albumTitle: image.albumTitle,
-                                ownerName: image.ownerUsername || "User",
+                                ownerName: image.ownerName,
+                                ownerUsername: image.ownerUsername,
                             })}
                             emptyMessage="No public images yet."
                         />

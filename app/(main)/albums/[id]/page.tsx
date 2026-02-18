@@ -143,10 +143,8 @@ export default function PublicAlbumPage() {
                             title: image.fileName ?? `Image ${index + 1}`,
                             size: image.size,
                             albumTitle: album.title,
-                            ownerName:
-                                album.ownerUsername ||
-                                album.ownerName ||
-                                "User",
+                            ownerName: album.ownerName,
+                            ownerUsername: album.ownerUsername,
                         })}
                         emptyMessage="No images yet."
                     />

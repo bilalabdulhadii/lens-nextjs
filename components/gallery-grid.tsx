@@ -16,6 +16,7 @@ import {
     ZoomIn,
     ZoomOut,
 } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -34,6 +35,7 @@ type ImageInfo = {
     dimensions?: { width: number; height: number };
     albumTitle?: string;
     ownerName?: string;
+    ownerUsername?: string;
 };
 
 type GalleryGridProps<T> = {
@@ -163,6 +165,8 @@ function ImageLightbox({
             : undefined);
     const formattedSize = formatBytes(currentInfo?.size);
     const titleText = currentInfo?.title ?? current?.alt ?? title ?? "Image";
+    const ownerUsername = currentInfo?.ownerUsername?.trim();
+    const ownerName = currentInfo?.ownerName?.trim();
 
     useEffect(() => {
         if (!open) return;
@@ -293,7 +297,7 @@ function ImageLightbox({
                         onClick={(event) => event.stopPropagation()}
                     />
 
-                    <div className="pointer-events-none absolute left-4 top-4 max-w-[70%] rounded-2xl border border-white/15 bg-black/60 px-4 py-3 text-white shadow-lg backdrop-blur">
+                    <div className="pointer-events-auto absolute left-4 top-4 max-w-[70%] rounded-2xl border border-white/15 bg-black/60 px-4 py-3 text-white shadow-lg backdrop-blur">
                         <div className="text-sm font-semibold">
                             {titleText}
                         </div>
@@ -307,8 +311,20 @@ function ImageLightbox({
                             {currentInfo?.albumTitle && (
                                 <span>Album: {currentInfo.albumTitle}</span>
                             )}
-                            {currentInfo?.ownerName && (
-                                <span>By {currentInfo.ownerName}</span>
+                            {ownerUsername ? (
+                                <span>
+                                    By{" "}
+                                    <Link
+                                        href={`/${ownerUsername}`}
+                                        className="font-semibold text-white hover:underline"
+                                        onClick={(event) =>
+                                            event.stopPropagation()
+                                        }>
+                                        {ownerUsername}
+                                    </Link>
+                                </span>
+                            ) : (
+                                ownerName && <span>By {ownerName}</span>
                             )}
                         </div>
                     </div>

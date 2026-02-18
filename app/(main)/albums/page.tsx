@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -30,6 +30,7 @@ type PublicAlbum = {
 };
 
 export default function PublicAlbumsPage() {
+    const router = useRouter();
     const [albums, setAlbums] = useState<PublicAlbum[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -100,10 +101,18 @@ export default function PublicAlbumsPage() {
                     const cover = album.images?.[0]?.downloadURL;
 
                     return (
-                        <Link
+                        <div
                             key={album.id}
-                            href={`/albums/${album.id}`}
-                            className="group block">
+                            role="link"
+                            tabIndex={0}
+                            onClick={() => router.push(`/albums/${album.id}`)}
+                            onKeyDown={(event) => {
+                                if (event.key === "Enter" || event.key === " ") {
+                                    event.preventDefault();
+                                    router.push(`/albums/${album.id}`);
+                                }
+                            }}
+                            className="group block cursor-pointer">
                             <Card className="overflow-hidden border-border/60 bg-card/80 transition hover:-translate-y-1 hover:shadow-xl">
                                 <div className="relative h-40 w-full overflow-hidden bg-muted">
                                     {cover ? (
@@ -128,9 +137,23 @@ export default function PublicAlbumsPage() {
                                 </CardDescription>
                                 <p className="text-xs text-muted-foreground">
                                     By{" "}
-                                    <span className="font-medium text-foreground">
-                                        {album.ownerUsername || "User"}
-                                    </span>
+                                    {album.ownerUsername ? (
+                                        <button
+                                            type="button"
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                router.push(
+                                                    `/${album.ownerUsername}`,
+                                                );
+                                            }}
+                                            className="font-medium text-foreground hover:underline">
+                                            {album.ownerUsername}
+                                        </button>
+                                    ) : (
+                                        <span className="font-medium text-foreground">
+                                            User
+                                        </span>
+                                    )}
                                 </p>
                             </CardHeader>
                                 <CardContent className="flex items-center justify-between text-xs text-muted-foreground">
@@ -140,7 +163,7 @@ export default function PublicAlbumsPage() {
                                     </span>
                                 </CardContent>
                             </Card>
-                        </Link>
+                        </div>
                     );
                 })}
             </div>

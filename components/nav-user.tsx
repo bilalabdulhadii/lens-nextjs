@@ -32,6 +32,7 @@ export function NavUser({
         name: string;
         email: string;
         avatar: string;
+        username?: string;
     };
 }) {
     const { logout } = useAuth();
@@ -42,6 +43,8 @@ export function NavUser({
         router.push("/login");
     }
     const { isMobile } = useSidebar();
+
+    const profilePath = user.username ? `/${user.username}` : "";
 
     return (
         <SidebarMenu>
@@ -99,7 +102,12 @@ export function NavUser({
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                                disabled={!profilePath}
+                                onClick={() => {
+                                    if (!profilePath) return;
+                                    router.push(profilePath);
+                                }}>
                                 <User />
                                 Profile
                             </DropdownMenuItem>
