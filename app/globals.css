@@ -133,19 +133,17 @@
 
 @media (min-width: 600px) {
   .gallery-masonry {
-    column-count: 2;
+    column-count: 4;
   }
 }
 
-.masonry-item {
-  break-inside: avoid;
-  margin-bottom: 20px;
+.gallery-item {
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
-.masonry-item img {
+.gallery-item img {
   width: 100%;
   height: auto;
   display: block;
@@ -153,10 +151,15 @@
   transition: transform 0.3s ease;
 }
 
-.masonry-item:hover img {
+.gallery-item:hover img {
   transform: scale(1.02);
 }
 
-.masonry-item[data-disabled="true"]:hover img {
+.gallery-item[data-disabled="true"]:hover img {
   transform: none;
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 20px;
 }

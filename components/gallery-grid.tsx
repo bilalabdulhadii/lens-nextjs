@@ -49,6 +49,9 @@ type GalleryGridProps<T> = {
     enableLightbox?: boolean;
     isDisabled?: (image: T, index: number) => boolean;
     renderOverlay?: (image: T, index: number) => ReactNode;
+    layout?: "masonry" | "justified";
+    rowHeight?: number;
+    rowGap?: number;
 };
 
 function defaultGetSrc(image: unknown): string | null {
@@ -371,6 +374,9 @@ export function GalleryGrid<T>({
     enableLightbox = true,
     isDisabled,
     renderOverlay,
+    layout = "justified",
+    rowHeight = 220,
+    rowGap = 16,
 }: GalleryGridProps<T>) {
     const normalized = useMemo(
         () => normalizeImages(images, title, getSrc, getAlt, getInfo),
@@ -379,11 +385,104 @@ export function GalleryGrid<T>({
 
     const [open, setOpen] = useState(false);
     const [index, setIndex] = useState(0);
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const [containerWidth, setContainerWidth] = useState(0);
+    const [dimensionsBySrc, setDimensionsBySrc] = useState<
+        Record<string, { width: number; height: number }>
+    >({});
 
     function openAt(nextIndex: number) {
         setIndex(nextIndex);
         setOpen(true);
     }
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const observer = new ResizeObserver((entries) => {
+            const entry = entries[0];
+            if (!entry) return;
+            setContainerWidth(entry.contentRect.width);
+        });
+        observer.observe(containerRef.current);
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        const missing = normalized.filter(
+            (image) => !dimensionsBySrc[image.src],
+        );
+        if (missing.length === 0) return;
+
+        let cancelled = false;
+
+        missing.forEach((image) => {
+            const loader = new Image();
+            loader.src = image.src;
+            loader.onload = () => {
+                if (cancelled) return;
+                if (!loader.naturalWidth || !loader.naturalHeight) return;
+                setDimensionsBySrc((prev) =>
+                    prev[image.src]
+                        ? prev
+                        : {
+                              ...prev,
+                              [image.src]: {
+                                  width: loader.naturalWidth,
+                                  height: loader.naturalHeight,
+                              },
+                          },
+                );
+            };
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [normalized, dimensionsBySrc]);
+
+    const rows = useMemo(() => {
+        if (layout !== "justified" || containerWidth <= 0) return [];
+
+        const computedRows: Array<{
+            items: Array<{ image: GalleryImage<T>; ratio: number }>;
+            height: number;
+        }> = [];
+
+        let row: Array<{ image: GalleryImage<T>; ratio: number }> = [];
+        let ratioSum = 0;
+
+        normalized.forEach((image) => {
+            const infoDims = image.info?.dimensions;
+            const cachedDims = dimensionsBySrc[image.src];
+            const dims = infoDims ?? cachedDims;
+            const ratio = dims ? dims.width / dims.height : 4 / 3;
+
+            row.push({ image, ratio });
+            ratioSum += ratio;
+
+            const rowWidth = ratioSum * rowHeight + rowGap * (row.length - 1);
+            if (rowWidth >= containerWidth) {
+                const height =
+                    (containerWidth - rowGap * (row.length - 1)) / ratioSum;
+                computedRows.push({ items: row, height });
+                row = [];
+                ratioSum = 0;
+            }
+        });
+
+        if (row.length > 0) {
+            computedRows.push({ items: row, height: rowHeight });
+        }
+
+        return computedRows;
+    }, [
+        layout,
+        containerWidth,
+        normalized,
+        dimensionsBySrc,
+        rowHeight,
+        rowGap,
+    ]);
 
     return (
         <div className={cn("space-y-4", className)}>
@@ -404,59 +503,142 @@ export function GalleryGrid<T>({
             )}
 
             {normalized.length > 0 ? (
-                <div className="gallery-masonry">
-                    {normalized.map((image, imageIndex) => {
-                        const disabled =
-                            isDisabled?.(image.original, imageIndex) ?? false;
-                        const overlay = renderOverlay?.(
-                            image.original,
-                            imageIndex,
-                        );
+                <div
+                    ref={containerRef}
+                    className={cn(
+                        layout === "masonry"
+                            ? "gallery-masonry"
+                            : "space-y-4",
+                    )}>
+                    {layout === "masonry"
+                        ? normalized.map((image, imageIndex) => {
+                              const disabled =
+                                  isDisabled?.(image.original, imageIndex) ??
+                                  false;
+                              const overlay = renderOverlay?.(
+                                  image.original,
+                                  imageIndex,
+                              );
 
-                        return (
-                            <div
-                                key={`${image.src}-${imageIndex}`}
-                                role="button"
-                                tabIndex={
-                                    enableLightbox && !disabled ? 0 : -1
-                                }
-                                data-disabled={disabled}
-                                className={cn(
-                                    "masonry-item group relative w-full border border-border/60 bg-card/70 text-left transition-shadow duration-300 hover:shadow-2xl",
-                                    disabled
-                                        ? "cursor-not-allowed opacity-60 grayscale"
-                                        : "cursor-zoom-in",
-                                )}
-                                onClick={() => {
-                                    if (!enableLightbox || disabled) return;
-                                    openAt(imageIndex);
-                                }}
-                                onKeyDown={(event) => {
-                                    if (!enableLightbox || disabled) return;
-                                    if (
-                                        event.key === "Enter" ||
-                                        event.key === " "
-                                    ) {
-                                        event.preventDefault();
-                                        openAt(imageIndex);
-                                    }
-                                }}
-                                aria-label={`Open image ${imageIndex + 1}`}
-                                aria-disabled={disabled}>
-                                <img
-                                    src={image.src}
-                                    alt={image.alt}
-                                    loading="lazy"
-                                />
-                                {overlay && (
-                                    <div className="pointer-events-none absolute inset-0 z-10">
-                                        {overlay}
-                                    </div>
-                                )}
-                                <span className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/0 via-transparent to-white/15 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                            </div>
-                        );
-                    })}
+                              return (
+                                  <div
+                                      key={`${image.src}-${imageIndex}`}
+                                      role="button"
+                                      tabIndex={
+                                          enableLightbox && !disabled ? 0 : -1
+                                      }
+                                      data-disabled={disabled}
+                                      className={cn(
+                                          "gallery-item masonry-item group relative w-full border border-border/60 bg-card/70 text-left transition-shadow duration-300 hover:shadow-2xl",
+                                          disabled
+                                              ? "cursor-not-allowed opacity-60 grayscale"
+                                              : "cursor-zoom-in",
+                                      )}
+                                      onClick={() => {
+                                          if (!enableLightbox || disabled) return;
+                                          openAt(imageIndex);
+                                      }}
+                                      onKeyDown={(event) => {
+                                          if (!enableLightbox || disabled) return;
+                                          if (
+                                              event.key === "Enter" ||
+                                              event.key === " "
+                                          ) {
+                                              event.preventDefault();
+                                              openAt(imageIndex);
+                                          }
+                                      }}
+                                      aria-label={`Open image ${imageIndex + 1}`}
+                                      aria-disabled={disabled}>
+                                      <img
+                                          src={image.src}
+                                          alt={image.alt}
+                                          loading="lazy"
+                                      />
+                                      {overlay && (
+                                          <div className="pointer-events-none absolute inset-0 z-10">
+                                              {overlay}
+                                          </div>
+                                      )}
+                                      <span className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/0 via-transparent to-white/15 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                                  </div>
+                              );
+                          })
+                        : rows.map((row, rowIndex) => (
+                              <div
+                                  key={`row-${rowIndex}`}
+                                  className="flex flex-nowrap items-center"
+                                  style={{ gap: rowGap }}>
+                                  {row.items.map((item, colIndex) => {
+                                      const imageIndex = normalized.indexOf(
+                                          item.image,
+                                      );
+                                      const disabled =
+                                          isDisabled?.(
+                                              item.image.original,
+                                              imageIndex,
+                                          ) ?? false;
+                                      const overlay = renderOverlay?.(
+                                          item.image.original,
+                                          imageIndex,
+                                      );
+
+                                      return (
+                                          <div
+                                              key={`${item.image.src}-${colIndex}`}
+                                              role="button"
+                                              tabIndex={
+                                                  enableLightbox && !disabled
+                                                      ? 0
+                                                      : -1
+                                              }
+                                              data-disabled={disabled}
+                                              className={cn(
+                                                  "gallery-item group relative border border-border/60 bg-card/70 text-left transition-shadow duration-300 hover:shadow-2xl",
+                                                  disabled
+                                                      ? "cursor-not-allowed opacity-60 grayscale"
+                                                      : "cursor-zoom-in",
+                                              )}
+                                              style={{
+                                                  width:
+                                                      item.ratio * row.height,
+                                                  height: row.height,
+                                              }}
+                                              onClick={() => {
+                                                  if (!enableLightbox || disabled)
+                                                      return;
+                                                  openAt(imageIndex);
+                                              }}
+                                              onKeyDown={(event) => {
+                                                  if (!enableLightbox || disabled)
+                                                      return;
+                                                  if (
+                                                      event.key === "Enter" ||
+                                                      event.key === " "
+                                                  ) {
+                                                      event.preventDefault();
+                                                      openAt(imageIndex);
+                                                  }
+                                              }}
+                                              aria-label={`Open image ${imageIndex + 1}`}
+                                              aria-disabled={disabled}>
+                                              <img
+                                                  src={item.image.src}
+                                                  alt={item.image.alt}
+                                                  loading="lazy"
+                                                  className="h-full w-full object-cover"
+                                              />
+                                              {overlay && (
+                                                  <div className="pointer-events-none absolute inset-0 z-10">
+                                                      {overlay}
+                                                  </div>
+                                              )}
+                                              <span className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/0 via-transparent to-white/15 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                                          </div>
+                                      );
+                                  })}
+                              </div>
+                          ))}
                 </div>
             ) : (
                 <div className="rounded-xl border border-dashed border-border/70 bg-muted/30 px-4 py-6 text-sm text-muted-foreground">

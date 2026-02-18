@@ -2,7 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { addDoc, collection } from "firebase/firestore";
+import {
+    addDoc,
+    arrayUnion,
+    collection,
+    doc,
+    getDoc,
+    increment,
+    serverTimestamp,
+    updateDoc,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
 
@@ -21,7 +30,6 @@ import { ImageUpload } from "@/components/image-upload";
 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
-import { updateDoc, doc, arrayUnion, increment } from "firebase/firestore";
 
 type Privacy = "private" | "public";
 
@@ -63,6 +71,13 @@ export default function NewAlbumPage() {
             return;
         }
 
+        const profileSnap = await getDoc(doc(db, "users", user.uid));
+        const profile = profileSnap.exists()
+            ? (profileSnap.data() as { username?: string; fullName?: string })
+            : null;
+        const ownerUsername = profile?.username ?? "";
+        const ownerName = profile?.fullName ?? "";
+
         const trimmed = title.trim();
         if (!trimmed) {
             setError("Title is required.");
@@ -79,13 +94,15 @@ export default function NewAlbumPage() {
             // 1) create album
             const docRef = await addDoc(collection(db, "albums"), {
                 ownerId: user.uid,
+                ownerName,
+                ownerUsername,
                 title: trimmed,
                 description: description.trim(),
                 privacy,
                 images: [],
                 imagesCount: 0,
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
             });
 
             // 2) upload selected files (if any)
@@ -119,7 +136,7 @@ export default function NewAlbumPage() {
                 await updateDoc(doc(db, "albums", docRef.id), {
                     images: arrayUnion(...uploadedImages),
                     imagesCount: increment(uploadedImages.length),
-                    updatedAt: Date.now(),
+                    updatedAt: serverTimestamp(),
                 });
             }
 

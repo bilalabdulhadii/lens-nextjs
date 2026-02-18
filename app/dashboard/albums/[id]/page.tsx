@@ -2,8 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { useParams, useRouter } from "next/navigation";
+import {
+    deleteDoc,
+    doc,
+    getDoc,
+    updateDoc,
+    serverTimestamp,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
 import { deleteObject, ref } from "firebase/storage";
@@ -43,6 +49,7 @@ type Album = {
 
 export default function AlbumPage() {
     const { id } = useParams<{ id: string }>();
+    const router = useRouter();
     const { user, loading } = useAuth();
 
     const [album, setAlbum] = useState<Album | null>(null);
@@ -52,6 +59,9 @@ export default function AlbumPage() {
     const [targetImage, setTargetImage] = useState<AlbumImage | null>(null);
     const [removing, setRemoving] = useState(false);
     const [removeError, setRemoveError] = useState("");
+    const [deleteAlbumOpen, setDeleteAlbumOpen] = useState(false);
+    const [deletingAlbum, setDeletingAlbum] = useState(false);
+    const [deleteAlbumError, setDeleteAlbumError] = useState("");
 
     const isOwner = useMemo(() => {
         return !!user && !!album && user.uid === album.ownerId;
@@ -152,6 +162,43 @@ export default function AlbumPage() {
         }
     }
 
+    async function handleDeleteAlbum() {
+        if (!id || !album || !isOwner) return;
+        setDeleteAlbumError("");
+        setDeletingAlbum(true);
+
+        try {
+            if (album.images.length > 0) {
+                const deletions = await Promise.allSettled(
+                    album.images
+                        .filter((image) => Boolean(image.storagePath))
+                        .map((image) =>
+                            deleteObject(ref(storage, image.storagePath!)),
+                        ),
+                );
+
+                const failed = deletions.filter(
+                    (result) => result.status === "rejected",
+                );
+                if (failed.length > 0) {
+                    setDeleteAlbumError(
+                        "Some images could not be removed from storage.",
+                    );
+                    return;
+                }
+            }
+
+            await deleteDoc(doc(db, "albums", id));
+            router.push("/dashboard/albums");
+        } catch (err: unknown) {
+            const message =
+                err instanceof Error ? err.message : "Failed to delete album.";
+            setDeleteAlbumError(message);
+        } finally {
+            setDeletingAlbum(false);
+        }
+    }
+
     return (
         <div className="space-y-4 p-6">
             <Card>
@@ -166,11 +213,20 @@ export default function AlbumPage() {
                             </span>
 
                             {isOwner && (
-                                <Button size="sm" variant="secondary" asChild>
-                                    <Link href={`/dashboard/albums/${id}/edit`}>
-                                        Edit
-                                    </Link>
-                                </Button>
+                                <>
+                                    <Button size="sm" variant="secondary" asChild>
+                                        <Link href={`/dashboard/albums/${id}/edit`}>
+                                            Edit
+                                        </Link>
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        onClick={() => setDeleteAlbumOpen(true)}
+                                        disabled={deletingAlbum}>
+                                        Delete
+                                    </Button>
+                                </>
                             )}
                         </div>
                     </CardTitle>
@@ -267,6 +323,44 @@ export default function AlbumPage() {
                             onClick={handleRemoveConfirmed}
                             disabled={removing}>
                             {removing ? "Removing..." : "Remove"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={deleteAlbumOpen}
+                onOpenChange={(open) => {
+                    setDeleteAlbumOpen(open);
+                    if (!open) setDeleteAlbumError("");
+                }}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Delete album?</DialogTitle>
+                        <DialogDescription>
+                            This will permanently delete “{album.title}” and all
+                            its images.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {deleteAlbumError && (
+                        <p className="text-sm text-red-500">
+                            {deleteAlbumError}
+                        </p>
+                    )}
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => setDeleteAlbumOpen(false)}
+                            disabled={deletingAlbum}>
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={handleDeleteAlbum}
+                            disabled={deletingAlbum}>
+                            {deletingAlbum ? "Deleting..." : "Delete album"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

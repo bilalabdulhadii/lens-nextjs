@@ -181,6 +181,7 @@ export default function EditAlbumPage() {
             return;
         }
 
+
         const removedSet = new Set(pendingRemoval);
         const keptImages = album.images.filter(
             (image) => !removedSet.has(getImageKey(image)),

@@ -13,6 +13,7 @@ type Album = {
     description?: string;
     privacy: "public" | "private";
     imagesCount: number;
+    images?: { downloadURL: string }[];
     createdAt?: unknown;
 };
 
@@ -95,12 +96,29 @@ export default function AlbumsPage() {
                     <Link
                         key={album.id}
                         href={`/dashboard/albums/${album.id}`}
-                        className="border-border bg-card flex h-40 flex-col justify-between rounded-xl border p-4 transition hover:shadow-md">
-                        <div className="bg-muted h-20 rounded-md flex items-center justify-center text-xs text-muted-foreground">
-                            {album.privacy.toUpperCase()}
+                        className="border-border bg-card flex flex-col overflow-hidden rounded-xl border transition hover:shadow-md">
+                        <div className="relative h-32 w-full overflow-hidden bg-muted">
+                            {album.images?.[0]?.downloadURL ? (
+                                <img
+                                    src={album.images[0].downloadURL}
+                                    alt={album.title}
+                                    className="h-full w-full object-cover"
+                                    loading="lazy"
+                                />
+                            ) : (
+                                <div className="h-full w-full bg-gradient-to-br from-muted via-muted/60 to-primary/20 dark:from-muted/80 dark:via-muted/50 dark:to-primary/30" />
+                            )}
+                            <div
+                                className={`absolute right-3 top-3 inline-flex items-center rounded-full border border-white/40 px-3 py-1 text-xs font-semibold shadow-sm ${
+                                    album.privacy === "public"
+                                        ? "bg-emerald-100 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-600 dark:text-emerald-50"
+                                        : "bg-amber-100 text-amber-800 dark:border-amber-700 dark:bg-amber-600 dark:text-amber-50"
+                                }`}>
+                                {album.privacy === "public" ? "Public" : "Private"}
+                            </div>
                         </div>
 
-                        <div>
+                        <div className="flex flex-col gap-1 p-4">
                             <p className="text-sm font-medium truncate">
                                 {album.title}
                             </p>
