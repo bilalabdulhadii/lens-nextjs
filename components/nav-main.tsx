@@ -29,7 +29,9 @@ export function NavMain({
                             tooltip="Quick Create"
                             className="bg-primary cursor-pointer text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground w-full duration-200 ease-linear"
                             asChild>
-                            <Link href="">
+                            <Link
+                                href="/dashboard/albums/new"
+                                aria-label="New Album">
                                 <CirclePlus />
                                 <span>Create Album</span>
                             </Link>
