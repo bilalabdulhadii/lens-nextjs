@@ -105,15 +105,15 @@ function normalizeImages<T>(
         getAlt ??
         ((image: T, index: number) => defaultGetAlt(image, index, title));
 
-    return images
-        .map((image, index) => {
-            const src = resolveSrc(image, index);
-            if (!src) return null;
-            const alt = resolveAlt(image, index) ?? defaultGetAlt(image, index, title);
-            const info = getInfo?.(image, index);
-            return { src, alt, original: image, info };
-        })
-        .filter((item): item is GalleryImage<T> => Boolean(item));
+    return images.reduce<GalleryImage<T>[]>((acc, image, index) => {
+        const src = resolveSrc(image, index);
+        if (!src) return acc;
+        const alt =
+            resolveAlt(image, index) ?? defaultGetAlt(image, index, title);
+        const info = getInfo?.(image, index);
+        acc.push({ src, alt, original: image, info });
+        return acc;
+    }, []);
 }
 
 type LightboxProps = {
