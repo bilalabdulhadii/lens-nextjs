@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { MainNavbar } from "@/components/main-navbar";
+import { MainSearch } from "@/components/main-search";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 
 export default function MainLayout({
@@ -14,6 +15,10 @@ export default function MainLayout({
         <div className="min-h-screen bg-linear-to-b from-background via-background to-muted/30">
             <div className="flex min-h-screen flex-col">
                 <MainNavbar />
+
+                <div className="mx-auto w-full max-w-6xl px-4 pt-6">
+                    <MainSearch />
+                </div>
 
                 <main className="flex-1">{children}</main>
 
