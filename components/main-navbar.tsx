@@ -23,6 +23,7 @@ export function MainNavbar() {
         { href: "/", label: "Home" },
         { href: "/albums", label: "Albums" },
         { href: "/explore", label: "Explore" },
+        { href: "/about", label: "About" },
     ];
 
     return (
@@ -89,7 +90,7 @@ export function MainNavbar() {
                                 <span className="sr-only">Open menu</span>
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="right" className="flex flex-col gap-6">
+                        <SheetContent side="right" className="flex flex-col gap-6 px-2">
                             <SheetHeader>
                                 <SheetTitle>Menu</SheetTitle>
                             </SheetHeader>
