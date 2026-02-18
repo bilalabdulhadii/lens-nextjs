@@ -8,8 +8,10 @@ export default function MainLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const year = new Date().getFullYear();
+
     return (
-        <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
+        <div className="min-h-screen bg-linear-to-b from-background via-background to-muted/30">
             <div className="flex min-h-screen flex-col">
                 <MainNavbar />
 
@@ -25,6 +27,28 @@ export default function MainLayout({
                                 Curate your stories in light. Share public
                                 albums and discover new perspectives.
                             </p>
+                            <p className="text-xs">
+                                © {year}{" "}
+                                <span className="font-medium text-foreground">
+                                    Bilal Abdulhadi
+                                </span>
+                                .{" "}
+                                <a
+                                    href="https://github.com/bilalabdulhadii"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="underline-offset-4 hover:underline">
+                                    GitHub
+                                </a>{" "}
+                                ·{" "}
+                                <a
+                                    href="https://bilalabdulhadi.com/"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="underline-offset-4 hover:underline">
+                                    Website
+                                </a>
+                            </p>
                         </div>
                         <div className="flex flex-col items-center gap-4 md:items-end">
                             <div className="flex flex-wrap justify-center gap-4 md:justify-end">
@@ -39,9 +63,9 @@ export default function MainLayout({
                                     Explore
                                 </Link>
                                 <Link
-                                    href="/login"
+                                    href="/about"
                                     className="hover:text-foreground">
-                                    Sign in
+                                    About
                                 </Link>
                             </div>
                             <ThemeToggleButton compact />
