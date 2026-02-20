@@ -11,7 +11,12 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
-import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import {
+    deleteObject,
+    getDownloadURL,
+    ref,
+    uploadBytesResumable,
+} from "firebase/storage";
 import { storage } from "@/lib/firebase";
 import { Trash2, Undo2 } from "lucide-react";
 
@@ -41,6 +46,10 @@ function getImageKey(image: AlbumImage) {
     return image.id ?? image.storagePath ?? image.downloadURL;
 }
 
+function getUploadKey(file: File) {
+    return `${file.name}-${file.size}-${file.lastModified}`;
+}
+
 export default function EditAlbumPage() {
     const { id } = useParams<{ id: string }>();
     const router = useRouter();
@@ -57,6 +66,9 @@ export default function EditAlbumPage() {
     const [error, setError] = useState("");
     const [newFiles, setNewFiles] = useState<File[]>([]);
     const [pendingRemoval, setPendingRemoval] = useState<string[]>([]);
+    const [uploadProgress, setUploadProgress] = useState<
+        Record<string, number>
+    >({});
 
     const isOwner = useMemo(() => {
         return !!user && !!album && user.uid === album.ownerId;
@@ -122,6 +134,11 @@ export default function EditAlbumPage() {
         MAX_IMAGES - (activeImageCount + newFiles.length),
     );
 
+    function handleFilesChange(files: File[]) {
+        setNewFiles(files);
+        setUploadProgress({});
+    }
+
     if (pageLoading || loading) {
         return <div className="p-6">Loading album...</div>;
     }
@@ -175,6 +192,7 @@ export default function EditAlbumPage() {
         }
 
         setSaving(true);
+        setUploadProgress({});
         try {
             const updates: Record<string, unknown> = {
                 title: trimmedTitle,
@@ -195,10 +213,39 @@ export default function EditAlbumPage() {
 
                     const storageRef = ref(storage, storagePath);
 
-                    await uploadBytes(storageRef, file, {
+                    const uploadKey = getUploadKey(file);
+                    setUploadProgress((prev) => ({
+                        ...prev,
+                        [uploadKey]: 0,
+                    }));
+
+                    const uploadTask = uploadBytesResumable(storageRef, file, {
                         contentType: file.type,
                     });
-                    const downloadURL = await getDownloadURL(storageRef);
+
+                    await new Promise<void>((resolve, reject) => {
+                        uploadTask.on(
+                            "state_changed",
+                            (snapshot) => {
+                                if (!snapshot.totalBytes) return;
+                                const percent = Math.round(
+                                    (snapshot.bytesTransferred /
+                                        snapshot.totalBytes) *
+                                        100,
+                                );
+                                setUploadProgress((prev) => ({
+                                    ...prev,
+                                    [uploadKey]: percent,
+                                }));
+                            },
+                            (err) => reject(err),
+                            () => resolve(),
+                        );
+                    });
+
+                    const downloadURL = await getDownloadURL(
+                        uploadTask.snapshot.ref,
+                    );
 
                     uploadedImages.push({
                         id: imageId,
@@ -318,8 +365,41 @@ export default function EditAlbumPage() {
                             <ImageUpload
                                 maxFiles={MAX_IMAGES}
                                 currentCount={activeImageCount}
-                                onFilesChange={setNewFiles}
+                                onFilesChange={handleFilesChange}
                             />
+                            {Object.keys(uploadProgress).length > 0 && (
+                                <div className="space-y-2">
+                                    <p className="text-xs text-muted-foreground">
+                                        Upload progress
+                                    </p>
+                                    {newFiles.map((file) => {
+                                        const key = getUploadKey(file);
+                                        const progress =
+                                            uploadProgress[key];
+                                        if (progress === undefined) return null;
+                                        return (
+                                            <div
+                                                key={key}
+                                                className="space-y-1">
+                                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                                    <span className="truncate">
+                                                        {file.name}
+                                                    </span>
+                                                    <span>{progress}%</span>
+                                                </div>
+                                                <div className="h-1.5 w-full rounded-full bg-muted/70">
+                                                    <div
+                                                        className="h-1.5 rounded-full bg-primary transition-all"
+                                                        style={{
+                                                            width: `${progress}%`,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
 
                         {error && (

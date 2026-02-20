@@ -28,7 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/image-upload";
 
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
 import { AlbumImage, AlbumPrivacy } from "@/types/album";
 
@@ -36,6 +36,10 @@ const MAX_IMAGES = 5;
 
 function makeId() {
     return crypto.randomUUID();
+}
+
+function getUploadKey(file: File) {
+    return `${file.name}-${file.size}-${file.lastModified}`;
 }
 
 export default function NewAlbumPage() {
@@ -49,6 +53,14 @@ export default function NewAlbumPage() {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
     const [newFiles, setNewFiles] = useState<File[]>([]);
+    const [uploadProgress, setUploadProgress] = useState<
+        Record<string, number>
+    >({});
+
+    function handleFilesChange(files: File[]) {
+        setNewFiles(files);
+        setUploadProgress({});
+    }
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -79,6 +91,7 @@ export default function NewAlbumPage() {
         }
         
         setSubmitting(true);
+        setUploadProgress({});
         try {
             // 1) create album
             const docRef = await addDoc(collection(db, "albums"), {
@@ -105,10 +118,39 @@ export default function NewAlbumPage() {
 
                     const storageRef = ref(storage, storagePath);
 
-                    await uploadBytes(storageRef, file, {
+                    const uploadKey = getUploadKey(file);
+                    setUploadProgress((prev) => ({
+                        ...prev,
+                        [uploadKey]: 0,
+                    }));
+
+                    const uploadTask = uploadBytesResumable(storageRef, file, {
                         contentType: file.type,
                     });
-                    const downloadURL = await getDownloadURL(storageRef);
+
+                    await new Promise<void>((resolve, reject) => {
+                        uploadTask.on(
+                            "state_changed",
+                            (snapshot) => {
+                                if (!snapshot.totalBytes) return;
+                                const percent = Math.round(
+                                    (snapshot.bytesTransferred /
+                                        snapshot.totalBytes) *
+                                        100,
+                                );
+                                setUploadProgress((prev) => ({
+                                    ...prev,
+                                    [uploadKey]: percent,
+                                }));
+                            },
+                            (err) => reject(err),
+                            () => resolve(),
+                        );
+                    });
+
+                    const downloadURL = await getDownloadURL(
+                        uploadTask.snapshot.ref,
+                    );
 
                     uploadedImages.push({
                         id: imageId,
@@ -200,8 +242,41 @@ export default function NewAlbumPage() {
                             <ImageUpload
                                 maxFiles={MAX_IMAGES}
                                 currentCount={0}
-                                onFilesChange={setNewFiles}
+                                onFilesChange={handleFilesChange}
                             />
+                            {Object.keys(uploadProgress).length > 0 && (
+                                <div className="space-y-2">
+                                    <p className="text-xs text-muted-foreground">
+                                        Upload progress
+                                    </p>
+                                    {newFiles.map((file) => {
+                                        const key = getUploadKey(file);
+                                        const progress =
+                                            uploadProgress[key];
+                                        if (progress === undefined) return null;
+                                        return (
+                                            <div
+                                                key={key}
+                                                className="space-y-1">
+                                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                                    <span className="truncate">
+                                                        {file.name}
+                                                    </span>
+                                                    <span>{progress}%</span>
+                                                </div>
+                                                <div className="h-1.5 w-full rounded-full bg-muted/70">
+                                                    <div
+                                                        className="h-1.5 rounded-full bg-primary transition-all"
+                                                        style={{
+                                                            width: `${progress}%`,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
 
                         {error && (
