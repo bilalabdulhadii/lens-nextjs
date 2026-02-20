@@ -16,27 +16,7 @@ import {
 } from "@/components/ui/card";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { Button } from "@/components/ui/button";
-
-type AlbumImage = {
-    id: string;
-    fileName?: string;
-    storagePath?: string;
-    downloadURL: string;
-    contentType?: string;
-    size?: number;
-    createdAt?: unknown;
-};
-
-type Album = {
-    ownerId: string;
-    ownerUsername?: string;
-    ownerName?: string;
-    title: string;
-    description?: string;
-    privacy: "public" | "private";
-    imagesCount: number;
-    images: AlbumImage[];
-};
+import { Album } from "@/types/album";
 
 export default function PublicAlbumPage() {
     const { id } = useParams<{ id: string }>();

@@ -29,16 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { ImageUpload } from "@/components/image-upload";
 import { cn } from "@/lib/utils";
-
-type AlbumImage = {
-    id: string;
-    fileName?: string;
-    storagePath?: string;
-    downloadURL: string;
-    contentType?: string;
-    size?: number;
-    createdAt?: unknown;
-};
+import { Album, AlbumImage, AlbumPrivacy } from "@/types/album";
 
 const MAX_IMAGES = 5;
 
@@ -49,15 +40,6 @@ function makeId() {
 function getImageKey(image: AlbumImage) {
     return image.id ?? image.storagePath ?? image.downloadURL;
 }
-
-type Album = {
-    ownerId: string;
-    title: string;
-    description?: string;
-    privacy: "public" | "private";
-    imagesCount: number;
-    images: AlbumImage[];
-};
 
 export default function EditAlbumPage() {
     const { id } = useParams<{ id: string }>();
@@ -70,7 +52,7 @@ export default function EditAlbumPage() {
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [privacy, setPrivacy] = useState<"public" | "private">("private");
+    const [privacy, setPrivacy] = useState<AlbumPrivacy>("private");
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [newFiles, setNewFiles] = useState<File[]>([]);

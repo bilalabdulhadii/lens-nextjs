@@ -30,18 +30,7 @@ import { ImageUpload } from "@/components/image-upload";
 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
-
-type Privacy = "private" | "public";
-
-type AlbumImage = {
-    id: string;
-    fileName: string;
-    storagePath: string;
-    downloadURL: string;
-    contentType: string;
-    size: number;
-    createdAt: unknown;
-};
+import { AlbumImage, AlbumPrivacy } from "@/types/album";
 
 const MAX_IMAGES = 5;
 
@@ -55,7 +44,7 @@ export default function NewAlbumPage() {
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [privacy, setPrivacy] = useState<Privacy>("private");
+    const [privacy, setPrivacy] = useState<AlbumPrivacy>("private");
 
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
@@ -198,7 +187,7 @@ export default function NewAlbumPage() {
                                 name="privacy"
                                 value={privacy}
                                 onChange={(e) =>
-                                    setPrivacy(e.target.value as Privacy)
+                                    setPrivacy(e.target.value as AlbumPrivacy)
                                 }
                                 disabled={submitting}
                                 className="border-input ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring dark:bg-input/30 flex h-9 w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50">

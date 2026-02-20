@@ -7,16 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GalleryGrid } from "@/components/gallery-grid";
-
-type AlbumImage = {
-    id: string;
-    fileName?: string;
-    storagePath?: string;
-    downloadURL: string;
-    contentType?: string;
-    size?: number;
-    createdAt?: unknown;
-};
+import { AlbumImage } from "@/types/album";
 
 type Album = {
     title: string;

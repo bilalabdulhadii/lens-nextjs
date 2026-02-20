@@ -6,7 +6,6 @@ import {
     useRef,
     useState,
     type PointerEvent,
-    type ReactNode,
 } from "react";
 import {
     ChevronLeft,
@@ -21,40 +20,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-
-type GalleryImage<T = unknown> = {
-    src: string;
-    alt: string;
-    original: T;
-    info?: ImageInfo;
-};
-
-type ImageInfo = {
-    title?: string;
-    size?: number;
-    dimensions?: { width: number; height: number };
-    albumTitle?: string;
-    ownerName?: string;
-    ownerUsername?: string;
-};
-
-type GalleryGridProps<T> = {
-    images: T[];
-    getSrc?: (image: T, index: number) => string | null | undefined;
-    getAlt?: (image: T, index: number) => string | null | undefined;
-    getInfo?: (image: T, index: number) => ImageInfo;
-    title?: string;
-    description?: string;
-    showHeader?: boolean;
-    emptyMessage?: string;
-    className?: string;
-    enableLightbox?: boolean;
-    isDisabled?: (image: T, index: number) => boolean;
-    renderOverlay?: (image: T, index: number) => ReactNode;
-    layout?: "masonry" | "justified";
-    rowHeight?: number;
-    rowGap?: number;
-};
+import { GalleryGridProps, GalleryImage, ImageInfo } from "@/types/gallery";
 
 function defaultGetSrc(image: unknown): string | null {
     if (typeof image === "string") return image;
@@ -170,6 +136,7 @@ function ImageLightbox({
 
     useEffect(() => {
         if (!open) return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setScale(1);
         setPosition({ x: 0, y: 0 });
         setIsDragging(false);

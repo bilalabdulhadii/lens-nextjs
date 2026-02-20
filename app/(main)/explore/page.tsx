@@ -12,31 +12,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { GalleryGrid } from "@/components/gallery-grid";
-
-type AlbumImage = {
-    id: string;
-    fileName?: string;
-    downloadURL: string;
-    contentType?: string;
-    size?: number;
-    createdAt?: unknown;
-};
-
-type Album = {
-    title: string;
-    ownerId: string;
-    ownerName?: string;
-    ownerUsername?: string;
-    images?: AlbumImage[];
-};
-
-type ExploreImage = AlbumImage & {
-    albumId: string;
-    albumTitle: string;
-    ownerId: string;
-    ownerName?: string;
-    ownerUsername?: string;
-};
+import { ExploreAlbum, ExploreImage } from "@/types/album";
 
 export default function ExplorePage() {
     const [images, setImages] = useState<ExploreImage[]>([]);
@@ -51,7 +27,7 @@ export default function ExplorePage() {
             const collected: ExploreImage[] = [];
 
             snapshot.docs.forEach((doc) => {
-                const data = doc.data() as Album;
+                const data = doc.data() as ExploreAlbum;
                 const albumImages = data.images ?? [];
 
                 albumImages.forEach((image) => {

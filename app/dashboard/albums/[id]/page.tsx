@@ -27,25 +27,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-
-type AlbumImage = {
-    id: string;
-    fileName?: string;
-    storagePath?: string;
-    downloadURL: string;
-    contentType?: string;
-    size?: number;
-    createdAt?: unknown;
-};
-
-type Album = {
-    ownerId: string;
-    title: string;
-    description?: string;
-    privacy: "public" | "private";
-    imagesCount: number;
-    images: AlbumImage[];
-};
+import { Album, AlbumImage } from "@/types/album";
 
 export default function AlbumPage() {
     const { id } = useParams<{ id: string }>();

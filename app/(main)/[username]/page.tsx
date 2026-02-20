@@ -21,25 +21,12 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import { Album } from "@/types/album";
 
 type Profile = {
     uid: string;
     username: string;
     fullName?: string;
-};
-
-type AlbumImage = {
-    downloadURL: string;
-};
-
-type Album = {
-    id: string;
-    title: string;
-    description?: string;
-    privacy: "public" | "private";
-    imagesCount?: number;
-    images?: AlbumImage[];
-    createdAt?: unknown;
 };
 
 export default function UserProfilePage() {

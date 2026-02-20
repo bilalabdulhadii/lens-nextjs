@@ -12,26 +12,12 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import { Album } from "@/types/album";
 
-type AlbumImage = {
-    downloadURL: string;
-};
-
-type PublicAlbum = {
-    id: string;
-    title: string;
-    description?: string;
-    imagesCount?: number;
-    images?: AlbumImage[];
-    createdAt?: unknown;
-    ownerId: string;
-    ownerUsername?: string;
-    ownerName?: string;
-};
 
 export default function PublicAlbumsPage() {
     const router = useRouter();
-    const [albums, setAlbums] = useState<PublicAlbum[]>([]);
+    const [albums, setAlbums] = useState<Album[]>([]);
     const [loading, setLoading] = useState(true);
 
     const getMillis = (value: unknown) => {
@@ -55,10 +41,10 @@ export default function PublicAlbumsPage() {
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data: PublicAlbum[] = snapshot.docs
+            const data: Album[] = snapshot.docs
                 .map((doc) => ({
                     id: doc.id,
-                    ...(doc.data() as Omit<PublicAlbum, "id">),
+                    ...(doc.data() as Omit<Album, "id">),
                 }))
                 .filter(
                     (album) => (album.imagesCount ?? 0) > 0,

@@ -5,17 +5,7 @@ import Link from "next/link";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
-
-type Album = {
-    id: string;
-    ownerId: string;
-    title: string;
-    description?: string;
-    privacy: "public" | "private";
-    imagesCount: number;
-    images?: { downloadURL: string }[];
-    createdAt?: unknown;
-};
+import { Album } from "@/types/album";
 
 export default function AlbumsPage() {
     const { user } = useAuth();
